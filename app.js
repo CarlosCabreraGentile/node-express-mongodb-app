@@ -1,3 +1,4 @@
+//Order of the require matters
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -9,6 +10,7 @@ var session = require('express-session');
 var passport = require('passport');
 var flash = require('connect-flash');
 var validator = require('express-validator');
+var MongoStore = require('connect-mongo')(session);
 
 var routes = require('./routes/index');
 var userRoutes = require('./routes/user');
@@ -30,7 +32,18 @@ app.use(validator());
 app.use(cookieParser());
 
 //middleware
-app.use(session({secret: 'mysupersecret', resave: false, saveUninitialized: false}));
+app.use(session({
+  secret: 'mysupersecret', 
+  resave: false, 
+  saveUninitialized: false,
+  store: new MongoStore({
+    mongooseConnection: mongoose.connection
+  }),
+  cookie: {
+    maxAge: 180 * 60 * 1000 //3hs set time for your session
+  }
+}));
+
 app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
@@ -40,6 +53,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 //middleware execute in all requests
 app.use(function(req, res, next){
   res.locals.login = req.isAuthenticated();//login variable use in all views
+  res.locals.session = req.session;//session variable use in the template
   next();
 });
 
