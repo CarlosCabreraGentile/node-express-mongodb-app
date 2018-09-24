@@ -64,25 +64,28 @@ passport.use('local.signin', new LocalStrategy({
     req.check('password', 'Invalid password').notEmpty();
     //Catch Errors
     var errors = req.validationErrors();
+    var messages = [];
     if (errors) {
-        var messages = [];
         errors.forEach(function (error) {
-            console.log(error);
-            messages.push({ param: error.param, msg: error.msg });
+            messages.push(error.msg);
         });
         //Throw error to the view with flash middleware
         return done(null, false, req.flash('error', messages));
     }
     User.findOne({ 'email': email }, function (err, user) {
         if (err) {
+            console.log(err);
             return done(err);
         }
         if (!user) {
-            return done(null, false, { message: 'No user found.' });
+            messages.push('No user found.');
+            return done(null, false, req.flash('error', messages));
         }
         if (!user.validPassword(password)) {
-            return done(null, false, { message: 'Wrong password.' });
+            messages.push('Wrong password.');
+            return done(null, false, req.flash('error', messages));
         }
+
        return done(null, user);
     });
 }));
