@@ -28,7 +28,7 @@ passport.use('local.signup', new LocalStrategy({
         var messages = [];
         errors.forEach(function (error) {
             console.log(error);
-            messages.push({ param: error.param, msg: error.msg });
+            messages.push(error.msg);
         });
         //Throw error to the view with flash middleware
         return done(null, false, req.flash('error', messages));
